@@ -8,7 +8,10 @@ Done — I made a plug-in scoring module for that workflow:
 
 [model_g_sqk_scoring_module_1a.py](sandbox:/mnt/data/model_g_sqk_scoring_module_1a.py)
 
-It is built around the logic we discussed: use the neutral/neutron-like branch to anchor the length scale via the Compton wavelength, use the proton-like branch to calibrate charge, and only then apply the Brown/LaViolette (M/Q) ratio to get an active-mass scale. That matches the book’s use of the Turing wavelength as the particle Compton wavelength, its treatment of (Q_y)/(\rho_y) as the active-charge side, (S_g) as active gravitational mass, and the proton-like state as a secondary bifurcation off a neutral branch.
+It is built around the logic we discussed: use the neutral/neutron-like branch to anchor the length scale 
+via the Compton wavelength, use the proton-like branch to calibrate charge, and only then apply the Brown/LaViolette (M/Q) ratio to get an active-mass scale. That matches the book’s use of the Turing 
+wavelength as the particle Compton wavelength, its treatment of (Q_y)/(\rho_y) as the active-charge side, 
+(S_g) as active gravitational mass, and the proton-like state as a secondary bifurcation off a neutral branch.
 
 The module gives you three main entry points:
 
@@ -79,17 +82,21 @@ A few useful things it measures automatically:
 * near-threshold penalty
 * SI calibration scales for length, charge, and active mass
 
-I kept it generic because I do not have your exact `model_g_particle_1d_proton_batch_search_1b.py` source file in this thread, so this is a drop-in module rather than an exact in-place patch. Upload that file and I’ll wire the calls into the exact spots for you.
+I kept it generic because I do not have your exact `model_g_particle_1d_proton_batch_search_1b.py` source 
+file in this thread, so this is a drop-in module rather than an exact in-place patch. Upload that file and 
+I’ll wire the calls into the exact spots for you.
 
 Brendan:
-Okay, I will upload "model_g_particle_1d_proton_batch_search_1b.py" . "Upload that file and I’ll wire the calls into the exact spots for you." Yes, please do that. Thanks!
+Okay, I will upload "model_g_particle_1d_proton_batch_search_1b.py" . "Upload that file and I’ll wire the 
+calls into the exact spots for you." Yes, please do that. Thanks!
 
 
 I’ve wired it into your uploaded batch-search script and saved a patched version here:
 
 [model_g_particle_1d_proton_batch_search_1c.py](sandbox:/mnt/data/model_g_particle_1d_proton_batch_search_1c.py)
 
-Your original `1b` script stays intact in spirit: it still does the Kelly-style proton target scoring and ranking workflow from the uploaded file, but now it also computes an SQK proxy-calibration block alongside it. 
+Your original `1b` script stays intact in spirit: it still does the Kelly-style proton target scoring and 
+ranking workflow from the uploaded file, but now it also computes an SQK proxy-calibration block alongside it. 
 
 What changed in `1c`:
 
@@ -108,7 +115,10 @@ What changed in `1c`:
   * `--sqk-weight 0.35`
   * `--neutron-length-scale-m-per-unit ...`
 
-The important adjustment is this: your earlier scoring module assumed a more chapter-12-style reaction-rate parameterization, while your uploaded `1b` script uses the shifted perturbation form (pG,pX,pY). So in `1c` I adapted the charge-like and G-like source estimates to **this exact solver** rather than forcing a mismatched parameter map onto it. 
+The important adjustment is this: your earlier scoring module assumed a more chapter-12-style 
+reaction-rate parameterization, while your uploaded `1b` script uses the shifted perturbation form 
+(pG,pX,pY). So in `1c` I adapted the charge-like and G-like source estimates to **this exact solver** 
+rather than forcing a mismatched parameter map onto it. 
 
 Use it like this:
 
@@ -135,9 +145,12 @@ python3 model_g_particle_1d_proton_batch_search_1c.py \
   --neutron-length-scale-m-per-unit 1.23e-15
 ```
 
-I also smoke-tested the patched script with a tiny one-run scan and it completed successfully. One useful early finding: the current `sqk_q_core_proxy` sign came out opposite to the positive `pY_core` sign in that quick test. That does **not** break the script, but it does suggest we may want to flip the proxy charge-sign convention after you inspect a few real runs.
+I also smoke-tested the patched script with a tiny one-run scan and it completed successfully. One useful 
+early finding: the current `sqk_q_core_proxy` sign came out opposite to the positive `pY_core` sign in that 
+quick test. That does **not** break the script, but it does suggest we may want to flip the proxy charge-sign convention after you inspect a few real runs.
 
-The next best step is to upload your neutron-like batch script too, so I can make the proton script read the neutron anchor automatically instead of using the proton fallback.
+The next best step is to upload your neutron-like batch script too, so I can make the proton script read 
+the neutron anchor automatically instead of using the proton fallback.
 
 
 Brendan: What do you mean by "neutron-like batch script"?
@@ -177,50 +190,22 @@ The reason I mentioned it is that we said the best calibration route is:
 So by “upload your neutron-like batch script,” I meant:
 
 * if you already have a separate code for searching the neutral branch, upload that
-* if you do **not** already have one, then I meant we should **make one next**, probably by adapting your proton batch script into something like:
+* if you do **not** already have one, then I meant we should **make one next**, probably by adapting your 
+proton batch script into something like:
 
 ```python
 model_g_particle_1d_neutron_batch_search_1a.py
 ```
 
-So I was not referring to some official existing LaViolette file — just a **neutral-branch version of your proton search code**.
+So I was not referring to some official existing LaViolette file — just a **neutral-branch version of your 
+proton search code**.
 
 The cleanest next step would be for me to build that neutron-search script from your current proton-search one.
 
 Brendan:
 
-I ran the code: "python3 model_g_particle_1d_proton_batch_search_1d.py --rank-by combined --sqk-weight 0.35" (notice I changed it "1d"). Can you explain the output? What do the parameter terms in the summary.txt mean here: "  Best candidate
-  rank_score = 0.21197884762966723
-  score_total_combined = 0.21197884762966723
-  score_total = 0.1768152325933788
-  score_sqk_proxy = 0.2772827041256315
-  score_rho_rmse = 0.1224087850519922
-  score_surface_rmse = 0.4948984927779085
-  dy = 12.0
-  b = 29.0
-  g = 0.11
-  amp = 1.0
-  sx = 1.0
-  st = 1.5
-  Tseed = 3.0
-  pY_core = 0.06705834986981615
-  Qproxy_int_pYdx = 0.0331870082352082
-  pY_peak_abs = 0.06705834986981615
-  pY_fwhm_abs = 0.7999999999999989
-  polarity_label = positive-polarity (proton-like)
-  sqk_lambda_sim = 3.214810801061793
-  sqk_r_core_sim = 0.8897143442645817
-  sqk_q_core_proxy = 0.08654190197222833
-  sqk_q_far_proxy = 0.053337956364145636
-  sqk_charge_consistency = 0.48398050787346203
-  sqk_tail_rel_error = 0.9478137893787065
-  sqk_proton_charge_bias_error = 0.0
-  sqk_length_scale_m_per_unit = 4.110381410168515e-16
-  sqk_length_scale_source = proton-fallback
-  sqk_proton_lambda_m = 1.3214098553893345e-15
-  sqk_proton_lambda_error_frac = 0.0
-  sqk_charge_scale_c_per_proxy = 1.851330508675607e-18
-  sqk_active_mass_scale_kg_per_proxy = 0.06819828193293064Best candidate
+I ran the code: "python3 model_g_particle_1d_proton_batch_search_1d.py --rank-by combined --sqk-weight 0.35" (notice I changed it "1d"). Can you explain the output? What do the parameter terms in the summary.txt mean 
+here: "  Best candidate
   rank_score = 0.21197884762966723
   score_total_combined = 0.21197884762966723
   score_total = 0.1768152325933788
@@ -259,7 +244,8 @@ ChatGPT 5.4:
 Yes — and there are two especially important points hidden in that output:
 
 First, because you ran without a neutron anchor,
-`sqk_length_scale_source = proton-fallback` means the code **forced the length scale from the proton Compton wavelength itself**.
+`sqk_length_scale_source = proton-fallback` means the code **forced the length scale from the proton 
+Compton wavelength itself**.
 
 So:
 
@@ -268,12 +254,14 @@ So:
 
 are **not an independent success test** here. They are true by construction in this run.
 
-Second, the SQK block is a **proxy-calibration layer**, not yet a final physical calibration. It uses the shifted perturbation variables (pG,pX,pY) from this solver as stand-ins for source and potential quantities.
+Second, the SQK block is a **proxy-calibration layer**, not yet a final physical calibration. It uses the 
+shifted perturbation variables (pG,pX,pY) from this solver as stand-ins for source and potential quantities.
 
 So the safest way to read the summary is:
 
 * the **Kelly score** tells you how well the final (pY(x)) shape matches the proton target profile
-* the **SQK proxy score** tells you how proton-like and self-consistent the candidate looks in the extra SQK-style diagnostics
+* the **SQK proxy score** tells you how proton-like and self-consistent the candidate looks in the extra 
+SQK-style diagnostics
 * the **combined score** blends those two.
 
 ## 1) The ranking lines
@@ -339,7 +327,8 @@ It combines:
 * late-time stability
 * charge-sign penalty
 
-In your case, this SQK proxy score is **worse than the Kelly score**, so the candidate is matching the proton target shape better than it is matching the extra SQK-proxy diagnostics.
+In your case, this SQK proxy score is **worse than the Kelly score**, so the candidate is matching the 
+proton target shape better than it is matching the extra SQK-proxy diagnostics.
 
 ## 2) The Kelly fit pieces
 
@@ -363,7 +352,8 @@ This compares:
 
 Lower is better.
 
-This is noticeably worse than `score_rho_rmse`, which means your candidate is matching the basic radial shape better than it is matching the **surface-weighted / outer-radius-weighted shape**.
+This is noticeably worse than `score_rho_rmse`, which means your candidate is matching the basic radial 
+shape better than it is matching the **surface-weighted / outer-radius-weighted shape**.
 
 So the fit is more convincing in the core/general profile than in the radial weighting.
 
@@ -379,7 +369,8 @@ Higher/lower values change how broadly or sharply the (Y)-sector spreads.
 
 ### `b = 29.0`
 
-This is the coupling parameter (b) in the shifted equations. In your solver it appears directly in the linear (pX \to pY) coupling and in the steady-state background calculation.
+This is the coupling parameter (b) in the shifted equations. In your solver it appears directly in the 
+linear (pX \to pY) coupling and in the steady-state background calculation.
 
 ### `g = 0.11`
 
@@ -403,7 +394,8 @@ Temporal width of the initial seed.
 
 Time location of the seed pulse.
 
-So that parameter block says: the best candidate in your search occurred at the top end of your scanned (g) range, with the largest (b) and the largest (dy), and a moderate centered seed.
+So that parameter block says: the best candidate in your search occurred at the top end of your scanned 
+(g) range, with the largest (b) and the largest (dy), and a moderate centered seed.
 
 ## 4) Simple profile diagnostics
 
@@ -496,7 +488,8 @@ using a log-ratio measure.
 
 Lower is better. Zero would mean perfect agreement.
 
-A value around (0.48) is **not terrible**, but it is not especially tight either. It means the core estimate and far-tail estimate differ by a noticeable factor.
+A value around (0.48) is **not terrible**, but it is not especially tight either. It means the core 
+estimate and far-tail estimate differ by a noticeable factor.
 
 ### `sqk_tail_rel_error = 0.9478137893787065`
 
@@ -504,7 +497,8 @@ This is the relative error of the (a/r+b) fit in the outer region.
 
 Lower is better.
 
-This is actually one of the weaker parts of the result. A value near (0.95) says the outer tail is **not very cleanly Coulomb-like** in this candidate.
+This is actually one of the weaker parts of the result. A value near (0.95) says the outer tail is 
+**not very cleanly Coulomb-like** in this candidate.
 
 That is probably the biggest reason the SQK proxy score is not stronger.
 
@@ -540,7 +534,8 @@ That means the code used:
 
 So it used the known proton Compton wavelength and your measured `sqk_lambda_sim` to define the meter scale.
 
-This is useful as a provisional conversion factor, but it is **not yet a validation**. It is a chosen calibration.
+This is useful as a provisional conversion factor, but it is **not yet a validation**. It is a chosen 
+calibration.
 
 ### `sqk_proton_lambda_m = 1.3214098553893345e-15`
 
@@ -579,7 +574,8 @@ So again this is a **conversion factor**, not an independent prediction.
 
 ### `sqk_active_mass_scale_kg_per_proxy = 0.06819828193293064`
 
-This is the conversion from one proxy active-mass unit to kilograms, using the Brown/LaViolette (M/Q) relation together with the proxy charge scale and the proxy (G)-source term.
+This is the conversion from one proxy active-mass unit to kilograms, using the Brown/LaViolette (M/Q) 
+relation together with the proxy charge scale and the proxy (G)-source term.
 
 This is best read as:
 
@@ -636,7 +632,8 @@ not final physical calibration.
 
 I would describe it as:
 
-> a decent first proton-like fit in shape and sign, with weaker far-tail behaviour and only moderate SQK charge self-consistency.
+> a decent first proton-like fit in shape and sign, with weaker far-tail behaviour and only moderate 
+SQK charge self-consistency.
 
 That means it is worth refining around this neighbourhood, especially near:
 
@@ -649,7 +646,8 @@ That means it is worth refining around this neighbourhood, especially near:
 
 but with more attention to improving the far tail and charge consistency rather than just the central hump.
 
-The best next step is to make a tighter local scan around this winner and add the neutron-anchor workflow, so the length calibration stops being tautological.
+The best next step is to make a tighter local scan around this winner and add the neutron-anchor workflow, 
+so the length calibration stops being tautological.
 
 
 Brendan: "The best next step is to make a tighter local scan around this winner and add the neutron-anchor workflow, so the length calibration stops being tautological." Yes, do this please!
@@ -747,7 +745,8 @@ I also smoke-tested both scripts. The proton refinement script correctly switche
 
 * `sqk_length_scale_source = neutron-anchor`
 
-One important caution: the quick neutron smoke-test candidate I got was **not very neutral**, so the machinery works, but you should still check the neutron run’s:
+One important caution: the quick neutron smoke-test candidate I got was **not very neutral**, so the 
+machinery works, but you should still check the neutron run’s:
 
 * `branch_label`
 * `neutron_neutrality_ratio`
@@ -774,10 +773,12 @@ python3 model_g_particle_1d_proton_batch_search_1e.py \
   --sqk-weight 0.35
 ```
 
-If you want, send me the new neutron `summary.txt` and the new proton `summary.txt`, and I’ll interpret both together.
+If you want, send me the new neutron `summary.txt` and the new proton `summary.txt`, and I’ll interpret 
+both together.
 
 
-Brendan: "If you want, next I can paste a very short “how to save and run them on Ubuntu” block." Yes do that, thanks.
+Brendan: "If you want, next I can paste a very short “how to save and run them on Ubuntu” block." 
+Yes do that, thanks.
 
 ChatGPT 5.4:
 
@@ -890,7 +891,8 @@ then the neutron anchor was not picked up.
 
 ## 7) If you get an import error
 
-If Python says it cannot find `model_g_particle_1d_proton_batch_search_1c`, check you are in the right folder:
+If Python says it cannot find `model_g_particle_1d_proton_batch_search_1c`, check you are in the right 
+folder:
 
 ```bash
 ls
